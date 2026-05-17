@@ -1,0 +1,16 @@
+/*
+ * graphics.c
+ *
+ *  Created on: May 4, 2026
+ *      Author: Rogyr
+ */
+
+#include <stddef.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+//8x8
+const uint8_t player_tank[] = {0xff,0xff,0xe7,0xff,0xff,0x3c,0x18,0x18};
+
+//8x8
+const uint8_t enemy_tank[] = {0xc3,0xe7,0xff,0xff,0x7e,0x3c,0x18,0x18};
