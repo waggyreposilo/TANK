@@ -11,10 +11,12 @@
 
 static I2C_HandleTypeDef *pi2c;					// Pointer to i2c handle
 
+static uint8_t currentpage = 0;
 static uint8_t bufferDraw[BUFFER_SIZE]; 		// Buffer used for Drawing
 static uint8_t bufferTx[BUFFER_SIZE];			// Buffer used for Display
 static uint8_t *pbufferDraw = bufferDraw;		// Pointer to the buffer for drawing
 static uint8_t *pbufferDisplay = bufferTx;		// Pointer to the buffer for display
+static uint8_t *pendingBuffer = NULL;
 
 static volatile bool isBusy = false; 			// For DMA use
 
@@ -23,6 +25,7 @@ static void SH1107_SendCMD(uint8_t cmd);
 static void SH1107_SetColumnAddress(uint8_t addr);
 static void SH1107_SetPageAddress(uint8_t addr);
 static void SH1107_StartDMATransfer(uint8_t *data);
+static void SH1107_SendDMAPage(void);
 static void SH1107_StartTransfer(uint8_t *data);
 
 static void __reverse(char* begin,char* end);
@@ -114,6 +117,14 @@ bool SH1107_isBusy(void){
 	return isBusy;
 }
 
+/*
+ * convertIntToStr
+ * @brief:	converts an integer number to a string
+ * @param:	numval	- number to be converted
+ * 			*buffer	- pointer to a char* variable where the final conversion is saved
+ * 			base	- decode.
+ * @retval:	string value of the number
+ */
 char* convertIntToStr(int numval, char* buffer, int base){
 	static const char digits[] = "0123456789abcdef";
 
@@ -154,7 +165,7 @@ char* convertIntToStr(int numval, char* buffer, int base){
  */
 static void SH1107_SendCMD(uint8_t cmd){
 	uint8_t buf[2] = {SINGLE_COMMAND,cmd}; //Co = 0, D/C = 0
-	HAL_I2C_Master_Transmit(pi2c, SH1107_I2CADDR, buf, 2, 1000);
+	HAL_I2C_Master_Transmit(pi2c, SH1107_I2CADDR, buf, 2, 10);
 }
 
 /*
@@ -190,24 +201,33 @@ static void SH1107_SetPageAddress(uint8_t addr){
  */
 static void SH1107_StartDMATransfer(uint8_t *data){
 	if (isBusy) return;
+	isBusy = true;
+	currentpage = 0;
+	pendingBuffer = data;
+
+	SH1107_SendDMAPage();
+
+}
+
+static void SH1107_SendDMAPage(void){
+	if(currentpage >= SH1107_HEIGHT/8){
+		isBusy = false;
+		currentpage = 0;
+		return;
+	}
 
 	static uint8_t txBuffer[SH1107_WIDTH + 1] = {0x00};
 
 	txBuffer[0] = SINGLE_DATA;
 
-	for(uint8_t page = 0; page < (SH1107_HEIGHT/8); page++){
-		SH1107_SetPageAddress(page);
-		SH1107_SetColumnAddress(0x00);
+	SH1107_SetPageAddress(currentpage);
+	SH1107_SetColumnAddress(0x00);
 
-		//memcpy(&(txBuffer[1]),data,len);
-		memcpy(&txBuffer[1], &(data[page * SH1107_WIDTH]), SH1107_WIDTH);
-		isBusy = true;
+	//memcpy(&(txBuffer[1]),data,len);
+	memcpy(&txBuffer[1], &(pendingBuffer[currentpage * SH1107_WIDTH]), SH1107_WIDTH);
 
-		HAL_I2C_Master_Transmit_DMA(pi2c, SH1107_I2CADDR, txBuffer, SH1107_WIDTH+1);
-		while(isBusy);
-	}
-
-
+	currentpage++;
+	HAL_I2C_Master_Transmit_DMA(pi2c, SH1107_I2CADDR, txBuffer, SH1107_WIDTH+1);
 }
 
 /*
@@ -285,5 +305,5 @@ static void __reverse(char* begin,char* end)
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c){
 	if(hi2c == pi2c)
-		isBusy = false;
+		SH1107_SendDMAPage();
 }

@@ -58,11 +58,8 @@ TIM_HandleTypeDef htim6;
 
 /* USER CODE BEGIN PV */
 uint8_t idx = 0;
-uint8_t xLabel[] = "X Reading: ";
-uint8_t yLabel[] = "Y Reading: ";
 
 JoystickData_TypeDef JoystickSnapshot;
-TankHandle_TypeDef TankTest;
 GameHandle_TypeDef GameTest = {0};
 
 
@@ -130,17 +127,6 @@ int main(void)
 
   HW504_Init(&JoystickHandle);
 
-  GameTest.player.dir = DIR_UP;
-  GameTest.player.isAlive = 1;
-  GameTest.player.x = 118;
-  GameTest.player.y = 7;
-  GameTest.player.sprite = player_tank;
-  GameTest.player.currentsprite = player_tank[0];
-  GameTest.bulletDir = DIR_UP;
-  GameTest.logicTimer = false;
-  GameTest.renderTimer = false;
-  memcpy(GameTest.map,map_1,sizeof(GameTest.map));
-
   InputInit(&hadc1, ShootInput_GPIO_Port, ShootInput_Pin);
 
   HW504_AnalogDataRead(&JoystickSnapshot);
@@ -154,35 +140,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(GameTest.logicTimer){
-		  GameTest.logicTimer = false;
-		  tank_update(&GameTest, &JoystickSnapshot);
-		  bullet_update(&GameTest);
-		  if(InputRead()){
-			  tank_shot(&GameTest);
-		  }
+	  switch(GameTest.gamestate){
+	  case GAMESTATE_MENU: game_menu(&GameTest); break;
+	  case GAMESTATE_PLAY: game_play(&GameTest, &JoystickSnapshot);break;
+	  case GAMESTATE_DEAD: game_dead(&GameTest);break;
 	  }
 
-
-	  if(GameTest.renderTimer && !SH1107_isBusy()){
-		  GameTest.logicTimer = false;
-		  SH1107_NewFrame();
-		  SH1107_DrawBitMap(0, 0, GameTest.map, 128, 128, WHITE);
-		  if((GameTest.activeShots != 0)){
-			  for(uint8_t i = 0, drawnShots = 0;i < MAX_SHOTS && (drawnShots <= GameTest.activeShots); i++){
-				  if(GameTest.shots[i].isActive){
-					  SH1107_DrawBitMap(GameTest.shots[i].x, GameTest.shots[i].y, bullet, 8, 2, WHITE);
-					  drawnShots++;
-				  }
-			  }
-		  }
-
-
-		  SH1107_DrawBitMap(GameTest.player.x, GameTest.player.y, GameTest.player.currentsprite, 8, 8, WHITE);
-
-
-		  SH1107_Display();
-	  }
   }
   /* USER CODE END 3 */
 }

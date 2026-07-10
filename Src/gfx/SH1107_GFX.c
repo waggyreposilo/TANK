@@ -14,12 +14,10 @@
 #include "gfx/SH1107_GFX.h"
 #include "drivers/SH1107.h"
 
-static void swapPoints(uint8_t* x, uint8_t *y);
 static void SH1107_DrawHLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color);
 static void SH1107_DrawVLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t color);
+static void swapPoints(uint8_t* x, uint8_t *y);
 
-// 6x8 Arcade font — ASCII 32–126 — column-major, LSB=top, 6 bytes/char
-// Usage: font[(ascii - 32) * 6 + col_index]
 const uint8_t font6x8[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // 0x20 'space'
 	0x00, 0x00, 0xDF, 0xDF, 0x00, 0x00,  // 0x21 '!'
@@ -148,10 +146,24 @@ void SH1107_DrawFastVLine(uint8_t x, uint8_t y, uint8_t h, uint8_t color){
 	SH1107_DrawLine(x, y, x, y+h-1, color);
 }
 
+/*
+ * SH1107_DrawFastHLine
+ * @brief: Draws Horizontal Line
+ * @param: x1, y1 - starting x and y coordinate
+ * 		   w - width of the line in pixels.
+ * 		   color - set the pixel on or off.
+ */
 void SH1107_DrawFastHLine(uint8_t x, uint8_t y, uint8_t w, uint8_t color){
 	SH1107_DrawLine(x, y, x+w-1, y, color);
 }
 
+/*
+ * SH1107_DrawCircle
+ * @brief: Draws Circle
+ * @param: xc, yc - Center x and y coordinate of the circle
+ * 		   rad - radius of the circle
+ * 		   color - set the pixel on or off.
+ */
 void SH1107_DrawCircle(uint8_t xc, uint8_t yc, uint8_t rad, uint8_t color){
 	int currentX, currentY, radError;
 
@@ -344,7 +356,7 @@ void SH1107_DrawString(uint8_t x, uint8_t y, uint8_t *str, uint8_t color, uint8_
 	//uint8_t *pString = &str;
 	uint8_t tempx = x;
 	for(uint8_t char_idx = 0; char_idx < strlen((char*)str); char_idx++){
-		tempx = x+(char_idx * 7);
+		tempx = x+(char_idx * (FONT_WIDTH + FONT_SPACING));
 		if(tempx >= SH1107_WIDTH) tempx-=SH1107_WIDTH;
 		SH1107_DrawChar(tempx, y, str[char_idx], WHITE, 1);
 	}
@@ -355,23 +367,24 @@ void SH1107_DrawInt(uint8_t x, uint8_t y, int num, uint8_t color, uint8_t size){
 	SH1107_DrawString(x, y, (uint8_t*)(convertIntToStr(num, buffer, 10)), color, size);
 }
 
-void SH1107_DrawBitMap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color){
-	uint8_t byteWidth = (w + 7) / 8;   /* bytes per row, rounded up */
-	uint8_t byte = 0;
+void SH1107_DrawBitMap(int16_t x, int16_t y, const uint8_t *bitmap,uint16_t w, uint16_t h, uint16_t color) {
 
+    uint16_t byteWidth = (w + 7) / 8;
+    uint8_t byte = 0;
 
-	for(uint8_t j = 0; j < h; j++){
-		for(uint8_t i = 0 ; i < w; i++){
-	        if (i & 7)
-	            byte <<= 1;
-	        else
-	        	byte = bitmap[j * byteWidth + i / 8];
+    for (uint16_t j = 0; j < h; j++) {
+        for (uint16_t i = 0; i < w; i++) {
+            if (i & 7)
+                byte <<= 1;
+            else
+                byte = bitmap[(uint16_t)j * byteWidth + i / 8];
 
-	        if (byte & 0x80)
-	           	SH1107_DrawPixel(x+i, y+j, color);
-		}
-	}
+            if (byte & 0x80)
+                SH1107_DrawPixel(x + i, y + j, color);
+        }
+    }
 }
+
 
 /*
  * Static functions
