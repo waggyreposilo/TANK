@@ -1,8 +1,8 @@
 /*
  * input.h
- *
- *  Created on: Jun 28, 2026
- *      Author: Rogyr
+ * @creator:	Wagner John Reposilo
+ * @date:		6/28/2026
+ * @brief:		This module contains functions to implement push button input logc
  */
 
 #ifndef INC_GAME_INPUT_H_
