@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define ShootInput_Pin GPIO_PIN_0
+#define ShootInput_GPIO_Port GPIOB
 #define SH1107_SDA_Pin GPIO_PIN_3
 #define SH1107_SDA_GPIO_Port GPIOB
 #define SH1107_SCL_Pin GPIO_PIN_6

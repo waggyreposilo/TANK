@@ -16,14 +16,14 @@
 #define DMA_MODE	1
 
 typedef struct{
-	ADC_HandleTypeDef *hadc;
-	GPIO_TypeDef* KeyPort;
-	uint16_t KeyPin;
+	ADC_HandleTypeDef *hadc;				//ADC Handle
+	GPIO_TypeDef* KeyPort;					//Joystick pushbutton GPIO port
+	uint16_t KeyPin;						//Joystick pushbutton GPIO pin
 }JoystickHandle_TypeDef;
 
 typedef struct{
-	uint16_t JoystickPosition[2];
-	uint8_t KeyState;
+	uint16_t JoystickPosition[2];			//ADC Data
+	uint8_t KeyState;						//State of the Joystick push button
 }JoystickData_TypeDef;
 
 void HW504_Init(JoystickHandle_TypeDef *JoystickHandle);

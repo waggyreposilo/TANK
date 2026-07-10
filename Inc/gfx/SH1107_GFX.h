@@ -15,7 +15,8 @@
 #define CORNER_BOTTOMRIGHT	0x04
 
 #define SIZE_DEFAULT		1
-
+#define FONT_WIDTH  		6
+#define FONT_SPACING 		1
 /*
  * Drawing Functions
  * @brief Graphics functions for shapes, bitmaps, and text
@@ -38,6 +39,6 @@ void SH1107_DrawChar(uint8_t x, uint8_t y, uint8_t ch, uint8_t color, uint8_t si
 void SH1107_DrawString(uint8_t x, uint8_t y, uint8_t *str, uint8_t color, uint8_t size);
 void SH1107_DrawInt(uint8_t x, uint8_t y, int num, uint8_t color, uint8_t size);
 
-void SH1107_DrawBitMap(uint8_t x, uint8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h, uint8_t color);
+void SH1107_DrawBitMap(int16_t x, int16_t y, const uint8_t *bitmap,uint16_t w, uint16_t h, uint16_t color);
 
 #endif /* INC_GFX_SH1107_GFX_H_ */
