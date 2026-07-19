@@ -766,7 +766,7 @@ static bool isLineofSight(EnemyTankHandle_TypeDef *enemy,GameHandle_TypeDef *gam
 
 
 static bool checkWallsH(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t *map){
-	int8_t  dx,dy,		//dx - change in x axis, dy - change in y axis
+	int16_t  dx,dy,		//dx - change in x axis, dy - change in y axis
 			dirY,		//dirY - direction of line in y direction
 			p,			//p - Accumulated Precision Error. Decides if the point gets drawn to +y or -y
 			currentY;	//y - Current y being drawn
@@ -791,10 +791,12 @@ static bool checkWallsH(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t 
 		currentY = y1;
 		p = (2*dy) - dx;
 		for(uint8_t i = 0; i < dx+1; i++){
-			//SH1107_DrawPixel(x1 + i, currentY, WHITE);
-			uint8_t cell = map[(x1 + i) + ((currentY/8) * (128))];
+			uint8_t px = x1 + i;
+			uint16_t byte_index = (currentY * 16) + (px/8);
+			uint8_t bit_index = 7 - (px % 8);
+			uint8_t cell = (map[byte_index] >> bit_index) & 0x01;
 
-			cell &= (1 << (currentY % 8));
+
 
 			if(cell) return true;
 			if(p >= 0){
@@ -808,7 +810,7 @@ static bool checkWallsH(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t 
 }
 
 static bool checkWallsV(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t *map){
-	int8_t  dx,dy,		//dx - change in x axis, dy - change in y axis
+	int16_t  dx,dy,		//dx - change in x axis, dy - change in y axis
 			dirX,		//dir - direction of increment in x direction
 			p,			//p - Accumulated Precision Error. Decides if the point gets drawn to +x or -x
 			currentX;			//x - Current x being drawn
@@ -833,10 +835,12 @@ static bool checkWallsV(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t 
 		currentX = x1;
 		p = (2*dx) - dy;
 		for(uint8_t i = 0; i < dy+1; i++){
-			//SH1107_DrawPixel(currentX, y1 + i, color);
-			uint8_t cell = map[currentX + (((y1 + i)/8) * (128))];
+			uint8_t py = y1 + i;
+			uint16_t byte_index = (py * 16) + (currentX/8);
+			uint8_t bit_index = 7 - (currentX % 8);
+			uint8_t cell = (map[byte_index] >> bit_index) & 0x01;
 
-			cell &= (1 << ((y1 + i) % 8));
+			
 
 			if(cell) return true;
 
